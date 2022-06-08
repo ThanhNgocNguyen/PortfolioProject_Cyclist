@@ -1,0 +1,149 @@
+---
+title: "Case_study_Cyclist"
+author: "Jade Nguyen"
+date: '2022-06-08'
+output: html_document
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(eval = FALSE)
+```
+
+
+## 1 Load necessary packages
+```{r}
+    library(tidyverse)
+    library(readr)
+    library(janitor)
+    library(dplyr)
+    library(lubridate)
+```
+
+## 2 Collect data
+```{r}
+    df1 <- read.csv("./data_case_study/202004-divvy-tripdata.csv")
+    df2 <- read.csv("./data_case_study/202005-divvy-tripdata.csv")
+    df3 <- read.csv("./data_case_study/202006-divvy-tripdata.csv")
+    df4 <- read.csv("./data_case_study/202007-divvy-tripdata.csv")
+    df5 <- read.csv("./data_case_study/202008-divvy-tripdata.csv")
+    df6 <- read.csv("./data_case_study/202009-divvy-tripdata.csv")
+    df7 <- read.csv("./data_case_study/202010-divvy-tripdata.csv")
+    df8 <- read.csv("./data_case_study/202011-divvy-tripdata.csv")
+    df9 <- read.csv("./data_case_study/202012-divvy-tripdata.csv")
+    df10 <- read.csv("./data_case_study/202101-divvy-tripdata.csv")
+    df11 <- read.csv("./data_case_study/202102-divvy-tripdata.csv")
+    df12 <- read.csv("./data_case_study/202103-divvy-tripdata.csv")
+    df13 <- read.csv("./data_case_study/202104-divvy-tripdata.csv")
+    df14 <- read.csv("./data_case_study/202105-divvy-tripdata.csv")
+```
+
+## 3 Combine data
+```{r}
+    trip_data <- rbind(df1,df2,df3,df4,df5,df6,df7,df8,df9,df10,df11,df12,df13,df14)
+```
+
+## 4 Add columns for date, month, day and year of each ride
+```{r}
+    trip_data$date <- as.Date(trip_data$started_at)
+    trip_data$year <- format(as.Date(trip_data$date), "%Y") 
+    trip_data$month <- format(as.Date(trip_data$date), "%m") 
+    trip_data$day <- format(as.Date(trip_data$date), "%d")
+    trip_data$day_of_week <- format(as.Date(trip_data$date), "%A")
+```
+
+## 5 Add ride_length calculation in minutes and convert to number
+```{r}
+    trip_data$ride_length <- difftime(trip_data$ended_at,trip_data$started_at, units = "mins")
+    trip_data$ride_length <- as.numeric(trip_data$ride_length)
+```
+
+## 6 Get summary of ride_length data
+```{r}
+    summary(trip_data$ride_length)
+```
+The min value is a negative number.
+So next, I use filter to find out how many negative data exist
+```{r}
+    trip_data %>% filter(ride_length < 0) 
+```
+Result shows 10,559 rows of negative data.
+To carry on with analysis, I decided to remove the negative data
+
+
+## 7 Remove negative ride length and na value 
+```{r}
+    df <- trip_data %>%  filter(ride_length > 0) %>% drop_na()
+```
+This reduces data from 4358611 rows to 4211741
+
+## 8 Find number of casual riders and number of member riders
+```{r}
+    count(df,member_casual)
+```
+###      Export data for future visualization
+```{r}
+    data_viz_1 <- count(df,member_casual)
+    write.csv(data_viz_1, "data_viz_1.csv")
+```
+
+## 9 Summarize data for each group of riders
+```{r}
+   df %>% 
+    group_by(member_casual) %>% 
+    summarise(avg_ride_length = mean(ride_length),
+              min_ride_length= min(ride_length),
+              max_ride_length= max(ride_length))
+```
+###      Export data for future visualization
+```{r}
+  data_viz_2 <-  df %>% 
+    group_by(member_casual) %>% 
+    summarise(avg_ride_length = mean(ride_length),
+              min_ride_length= min(ride_length),
+              max_ride_length= max(ride_length))
+  write.csv(data_viz_2, "data_viz_2.csv")
+```
+## 10 Rides by member_casual and weekday
+```{r}
+    df %>% 
+      mutate(weekday = wday(started_at, label = TRUE)) %>%
+      group_by(member_casual, weekday) %>%
+      summarise(number_of_rides = n()	 
+                ,average_ride_length = mean(ride_length)) %>%
+      arrange(member_casual, weekday)
+```
+###      Export data for future visualization
+```{r}
+    data_viz_3 <- df %>% 
+                mutate(weekday = wday(started_at, label = TRUE)) %>%
+                group_by(member_casual, weekday) %>%
+                summarise(number_of_rides = n()	 
+                          ,average_ride_length = mean(ride_length)) %>%
+                arrange(member_casual, weekday)
+    write.csv(data_viz_3, "data_viz_3.csv")  
+```
+## 11 Rides by member_casual and month
+```{r}
+   df %>%
+    group_by(member_casual, year, month) %>%
+    summarise(number_of_rides = n()	 
+              ,average_ride_length = mean(ride_length)) %>%
+    arrange(member_casual, month) %>% 
+    tbl_df %>% print(n = Inf) 
+```
+
+###      Export data for future visualization
+#### For this visualization I remove data from 4/2021 and 5/2021 in excel file before visualizing it in Tableau
+
+    install.packages("openxlsx")
+    library(openxlsx)
+    data_viz_4 <- df %>%
+                group_by(member_casual, year, month) %>%
+                summarise(number_of_rides = n()	 
+                          ,average_ride_length = mean(ride_length)) %>%
+                arrange(member_casual, month)
+       
+    write.xlsx(data_viz_4, 'data_viz_4.xlsx')
+
+
+# Refer to [Tableau Viz](https://public.tableau.com/views/PortfolioProject_Cyclist/Dashboard1?:language=en-US&:display_count=n&:origin=viz_share_link) to see data vizs
