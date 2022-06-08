@@ -2,6 +2,8 @@
 
 This is my analysis of the Case Study: How Does a Bike-Share Navigate Speedy Success? from Google's Data Analytics Professional Certificate capstone projects.
 
+You can find the dataset at: https://divvy-tripdata.s3.amazonaws.com/index.html
+
 Cyclist is a successful bike sharing platform with flexible pricing plans. The company generates more revenues from membership plans, therefore it wants to develop a successful marketing campaign that can convert casual riders into members.
 
 As a junior data analyst at the Cyclistic marketing analytics team, I am responsible for collecting, analyzing, and reporting data that helps guide Cyclistic marketing strategy. 
